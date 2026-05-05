@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BulkFlow Wholesale Order Management</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">BF</span>
+          <div>
+            <strong>BulkFlow</strong>
+            <span>Wholesale OS</span>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <button class="nav-item active" data-section="buyer">Buyer Desk</button>
+          <button class="nav-item" data-section="admin">Seller Admin</button>
+          <button class="nav-item" data-section="invoice">Invoice</button>
+        </nav>
+
+        <div class="approval-card" id="buyerStatusCard"></div>
+      </aside>
+
+      <main>
+        <section class="topbar">
+          <div>
+            <p class="eyebrow">B2B ordering workspace</p>
+            <h1>Bulk purchasing command center</h1>
+            <p class="topbar-copy">Approve buyers, manage price tiers, upload SKU sheets, place Net 30 orders, and generate GST-ready invoices from one focused workspace.</p>
+          </div>
+          <div class="topbar-actions">
+            <button class="ghost-button" id="seedOrderBtn" type="button">Reorder</button>
+            <button class="primary-button" id="checkoutBtn" type="button">Checkout</button>
+          </div>
+        </section>
+
+        <section class="kpi-strip">
+          <div>
+            <span>Open SKUs</span>
+            <strong id="kpiSkus">0</strong>
+          </div>
+          <div>
+            <span>Cart value</span>
+            <strong id="kpiCart">₹0</strong>
+          </div>
+          <div>
+            <span>Credit available</span>
+            <strong id="kpiCredit">₹0</strong>
+          </div>
+          <div>
+            <span>Order state</span>
+            <strong id="kpiState">Blocked</strong>
+          </div>
+        </section>
+
+        <section class="notice-strip" id="workflowNotice"></section>
+
+        <section class="section active" id="buyer">
+          <div class="buyer-grid">
+            <div class="panel registration-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Retailer registration</p>
+                  <h2>KYC profile</h2>
+                </div>
+                <span class="status-chip pending" id="kycStatus">Pending approval</span>
+              </div>
+              <form id="registrationForm" class="form-grid">
+                <label>
+                  Business name
+                  <input name="businessName" value="Metro Fresh Retail LLP" />
+                </label>
+                <label>
+                  GST / Tax ID
+                  <input name="taxId" value="27AAHCM9988Q1Z5" />
+                </label>
+                <label>
+                  Contact email
+                  <input name="email" type="email" value="purchasing@metrofresh.example" />
+                </label>
+                <label>
+                  Requested credit
+                  <input name="requestedCredit" type="number" value="350000" min="0" />
+                </label>
+                <button class="primary-button" type="submit">Submit for approval</button>
+              </form>
+            </div>
+
+            <div class="panel credit-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Credit control</p>
+                  <h2>Buyer balance</h2>
+                </div>
+                <span class="status-chip" id="creditHealth">Healthy</span>
+              </div>
+              <div class="metric-row">
+                <div>
+                  <span>Credit limit</span>
+                  <strong id="creditLimit">₹300,000</strong>
+                </div>
+                <div>
+                  <span>Amount due</span>
+                  <strong id="amountDue">₹84,500</strong>
+                </div>
+                <div>
+                  <span>Available</span>
+                  <strong id="creditAvailable">₹215,500</strong>
+                </div>
+              </div>
+              <div class="progress">
+                <span id="creditProgress"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="toolband">
+            <div class="search-field">
+              <span>SKU</span>
+              <input id="skuSearch" placeholder="Search products, categories, SKUs" />
+            </div>
+            <label class="file-button">
+              Upload CSV
+              <input id="csvUpload" type="file" accept=".csv,text/csv" />
+            </label>
+            <button class="ghost-button" id="rfqBtn" type="button">Request quote</button>
+          </div>
+
+          <div class="flow-steps" aria-label="Buyer workflow">
+            <span>Register</span>
+            <span>Approve</span>
+            <span>Bulk cart</span>
+            <span>Credit check</span>
+            <span>Invoice</span>
+          </div>
+
+          <div class="commerce-grid">
+            <div class="panel catalog-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Wholesale catalog</p>
+                  <h2>Live tiered pricing</h2>
+                </div>
+                <span id="catalogCount"></span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>SKU</th>
+                      <th>Product</th>
+                      <th>MOQ</th>
+                      <th>Stock</th>
+                      <th>Tier price</th>
+                      <th>Qty</th>
+                    </tr>
+                  </thead>
+                  <tbody id="catalogBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel cart-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Bulk cart</p>
+                  <h2>Order summary</h2>
+                </div>
+                <span id="cartLines">0 lines</span>
+              </div>
+              <div id="cartBody" class="cart-lines"></div>
+              <div class="terms-box">
+                <label>
+                  Payment terms
+                  <select id="paymentTerms">
+                    <option value="credit">Credit / Net 30</option>
+                    <option value="pay-now">Pay now</option>
+                  </select>
+                </label>
+                <label>
+                  Shipping city
+                  <input id="shippingCity" value="Mumbai Distribution Dock" />
+                </label>
+              </div>
+              <div class="totals" id="totalsBox"></div>
+              <div class="validation-box" id="validationBox"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="admin">
+          <div class="admin-grid">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Account approval</p>
+                  <h2>Retailer verification queue</h2>
+                </div>
+                <button class="primary-button" id="approveBtn" type="button">Approve buyer</button>
+              </div>
+              <div id="kycReview" class="review-card"></div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Credit management</p>
+                  <h2>Retailer terms</h2>
+                </div>
+              </div>
+              <label class="wide-label">
+                Credit limit
+                <input id="adminCreditLimit" type="number" min="0" step="10000" value="300000" />
+              </label>
+              <label class="wide-label">
+                Existing amount due
+                <input id="adminAmountDue" type="number" min="0" step="1000" value="84500" />
+              </label>
+              <button class="ghost-button" id="saveCreditBtn" type="button">Save terms</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Pricing engine</p>
+                <h2>Product tiers and inventory</h2>
+              </div>
+              <span>Editable wholesale controls</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>SKU</th>
+                    <th>Product</th>
+                    <th>MOQ</th>
+                    <th>Stock</th>
+                    <th>Base</th>
+                    <th>100+</th>
+                    <th>500+</th>
+                  </tr>
+                </thead>
+                <tbody id="adminProducts"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Order processing</p>
+                <h2>Fulfillment board</h2>
+              </div>
+            </div>
+            <div id="ordersBoard" class="orders-board"></div>
+          </div>
+        </section>
+
+        <section class="section" id="invoice">
+          <div class="panel invoice-panel" id="invoicePanel">
+            <div class="invoice-empty">
+              Complete checkout to generate an invoice with tax and shipping details.
+            </div>
+          </div>
+          <button class="primary-button print-button" id="printInvoiceBtn" type="button">Print / Save PDF</button>
+        </section>
+      </main>
+    </div>
+
+    <template id="invoiceTemplate"></template>
+    <script src="app.js"></script>
+  </body>
+</html>
